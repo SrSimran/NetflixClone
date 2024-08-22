@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title> Netflix India- Watch TV Shows Online , Watch Movies Online</title>
+    <link rel="icon" href="/icon.png" type="image/x-icon">
+    <link rel="text/css" href="path/to/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="./login.css">
+</head>
+
+<body>
+    <nav>
+        <a href="#">
+            <img src="../assests/logo.png" alt="" class="logo">
+        </a>
+    </nav>
+    <div class="form-wrapper" id="login">
+        <h2>Sign In</h2>
+        <form method="post" action="">
+            <div class="form-control">
+                <input type="email" id="loginemail" required>
+                <label for="loginemail">Email Address</label>
+            </div>
+            <div class="form-control">
+                <input type="password" id="loginpassword" required>
+                <label for="loginpassword">password</label>
+            </div>
+            <button type="submit" id="submitSignIn">Sign In</button>
+            <div class="form-help">
+                <div class="remember-me">
+                    <input type="checkbox" id="remember-me">
+                    <label for="remember-me">Remember me</label>
+                </div>
+                <a href="#" id="resetpassword">Need help?</a>
+            </div>
+        </form>
+        <p>New to Netflix? <a href="#signup" id="registerbtn">Sign up now</a></p>
+        <small>This page is protected by Google reCAPTCHA to ensure you're not a bot.
+            <a href="#">Learn more.</a>
+        </small>
+    </div>
+
+    <div class="form-wrapper" id="register" style="display: none; padding:35px;">
+        <h2 class="registerh2"">Sign Up</h2>
+        <form method="post" action="">
+            <div class="form-control">
+                <input type="text" id="name" required>
+                <label for="name">Username</label>
+            </div>
+            <div class="form-control">
+                <input type="email" id="registeremail" required>
+                <label for="registeremail">Email Address</label>
+            </div>
+            <div class="form-control">
+                <input type="password" id="registerpassword" required>
+                <label for="registerpassword">password</label>
+            </div>
+            <button type="submit" id="submitSignUp">Sign Up</button>
+        </form>
+        <p>Already have an account? <a href="#login" id="loginbtn">Sign In</a></p>
+        <small>This page is protected by Google reCAPTCHA to ensure you're not a bot.
+            <a href="#">Learn more.</a>
+        </small>
+    </div>
+
+    <script>
+        const registerbtn = document.getElementById('registerbtn');
+        const loginbtn = document.getElementById('loginbtn');
+        const register = document.getElementById('register');
+        const login = document.getElementById('login');
+
+        registerbtn.addEventListener('click', function () {
+            login.style.display = "none";
+            register.style.display = "block";
+        })
+        loginbtn.addEventListener('click', function () {
+            login.style.display = "block";
+            register.style.display = "none";
+        })
+    </script>
+
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import {getAuth, createUserWithEmailAndPassword, sendPasswordResetEmail ,  signInWithEmailAndPassword} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-auth.js";
+        import {getFirestore , setDoc , doc} from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js"
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+          apiKey: "AIzaSyBePLBaCTV2kJGV8SGziISD78qkSn_d_Sc",
+          authDomain: "netflix-login-81bd6.firebaseapp.com",
+          projectId: "netflix-login-81bd6",
+          storageBucket: "netflix-login-81bd6.appspot.com",
+          messagingSenderId: "774749145777",
+          appId: "1:774749145777:web:2b6a2fcefc56da2d753090"
+        };
+      
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+
+        const signUp = document.getElementById("submitSignUp");
+        signUp.addEventListener("click", (event)=> {
+            event.preventDefault();
+            const username = document.getElementById("name").value;
+            const email = document.getElementById("registeremail").value;
+            const password = document.getElementById("registerpassword").value;
+
+            const auth = getAuth();
+            const db = getFirestore();
+
+            createUserWithEmailAndPassword(auth , email , password)
+            .then((userCredential)=>{
+                const user=userCredential.user;
+                const userData={
+                    email: email,
+                    username: username,
+                    password:password
+                };
+                alert("account created successfully!");
+                const docRef=doc(db , "users" , user.uid);
+                setDoc(docRef,userData)
+                .then(()=>{
+                    window.location.href="login.html";
+                })
+                .catch((error)=>{
+                    console.log("error writing document" , error);
+                });
+            })
+            .catch((error)=>{
+                const errorCode = error.code;
+                if(errorCode=='auth/email-already-in-use'){
+                    alert("Email already exists");
+                }else{
+                    alert("unable to create user");
+                }
+            })
+        });
+        
+        const signIn = document.getElementById("submitSignIn");
+        signIn.addEventListener("click" , (event)=>{
+            event.preventDefault();
+            const email = document.getElementById("loginemail").value;
+            const password = document.getElementById("loginpassword").value;
+            const auth = getAuth();
+
+            signInWithEmailAndPassword(auth , email,password)
+            .then((userCredential)=>{
+                alert("login is successful!");
+                const user = userCredential.user;
+                localStorage.setItem('loggedInUserId', user.uid);
+                window.location.href='homepage.html';
+            })
+            .catch((error)=>{
+                const errorCode=error.code;
+                if(errorCode==='auth/invalid-credential'){
+                    alert("Incorrect email or phone number or password");
+                }else{
+                    alert("Account doesnot Exists");
+                }
+            })
+        })
+
+        const resetpassword = document.getElementById("resetpassword");
+        resetpassword.addEventListener("click" , function(event){
+            event.preventDefault();
+            const email = document.getElementById("loginemail").value;
+            const auth =getAuth();
+
+            sendPasswordResetEmail(auth , email)
+            .then(()=>{
+                alert("reset password email sent");
+            })
+            .catch((error)=>{
+                const errorCode = error.code;
+                const errorMessage = error.message;
+                alert("error sending reset email");
+            })
+        })
+      </script>
+</body>
+
+</html>
